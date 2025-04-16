@@ -6,8 +6,6 @@ import org.springframework.stereotype.Component;
 
 import com.scm.v1.entities.Providers;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

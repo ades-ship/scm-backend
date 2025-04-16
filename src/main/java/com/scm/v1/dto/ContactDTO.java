@@ -2,7 +2,6 @@ package com.scm.v1.dto;
 
 import com.scm.v1.entities.ContactType;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
     
-@Table(name = "contacts")
 @Getter
 @Setter
 @NoArgsConstructor

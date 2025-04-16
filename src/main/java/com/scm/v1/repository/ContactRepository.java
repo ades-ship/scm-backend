@@ -1,25 +1,17 @@
 package com.scm.v1.repository;
 
 import com.scm.v1.entities.Contact;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+public interface ContactRepository extends MongoRepository<Contact, Long> {
 
-public interface ContactRepository extends JpaRepository<Contact, Long> {
-    @Query("SELECT c FROM contact c WHERE c.user.id = :userId")
-    List<Contact> findByUserId(@Param("userId") Long userId);
+    // Find all contacts by userId
+    List<Contact> findByUserId(Long userId);
 
-    // @Query("select c from contact where c.user_id = :userId && c.name = query || c.email = query || c.name = phone")
-    // List<Contact> getFilterContacts(Long userId, String query);
-
-    @Query("SELECT c FROM contact c WHERE c.user.id = :userId AND (c.name = :query OR c.email = :query OR c.phone = :query)")
+    // Custom filter query by userId and query matching name, email or phone
+    @Query("{ 'userId': ?0, $or: [ { 'name': ?1 }, { 'email': ?1 }, { 'phone': ?1 } ] }")
     List<Contact> getFilterContacts(Long userId, String query);
-
-
-
-
-
 }

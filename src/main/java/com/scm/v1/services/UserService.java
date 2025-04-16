@@ -7,11 +7,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
@@ -23,24 +18,23 @@ import com.scm.v1.repository.UserRepository;
 
 @Service
 @CrossOrigin(origins = "http://localhost:3000")
-public class UserService implements UserDetailsService {
+public class UserService  {
     
     @Autowired 
     UserRepository userRepository;
     
-    private PasswordEncoder passwordEncoder;
 
-     @Override
-    public UserDetails loadUserByUsername(String username) {
-        User user = userRepository.findByUsername(username);
-        if (user == null) return null;
+    //  @Override
+    // public UserDetails loadUserByUsername(String username) {
+    //     User user = userRepository.findByUsername(username);
+    //     if (user == null) return null;
 
-        return new org.springframework.security.core.userdetails.User(
-            user.getUsername(),
-            user.getPassword(),
-            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRoles()))
-        );
-    }
+    //     return new org.springframework.security.core.userdetails.User(
+    //         user.getUsername(),
+    //         user.getPassword(),
+    //         List.of(new SimpleGrantedAuthority("ROLE_" + user.getRoles()))
+    //     );
+    // }
 
 
     public List<UserDTO> getUsers(){

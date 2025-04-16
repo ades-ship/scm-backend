@@ -1,126 +1,81 @@
 package com.scm.v1.services;
-import com.scm.v1.repository.UserRepository;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.scm.v1.dto.ContactDTO;
 import com.scm.v1.entities.Contact;
 import com.scm.v1.entities.User;
 import com.scm.v1.repository.ContactRepository;
+import com.scm.v1.repository.UserRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.CrossOrigin;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @CrossOrigin(origins = "http://localhost:3000")
 public class ContactService {
 
     private final UserRepository userRepository;
+    private final ContactRepository contactRepository;
 
     @Autowired
-    ContactRepository contactRepository;
-
-    ContactService(UserRepository userRepository) {
+    public ContactService(UserRepository userRepository, ContactRepository contactRepository) {
         this.userRepository = userRepository;
+        this.contactRepository = contactRepository;
     }
 
-    public ContactDTO registerContact(Long userid, ContactDTO newContact){
+    public ContactDTO registerContact(Long userId, ContactDTO newContact) {
+        Optional<User> currentUser = userRepository.findById(userId);
 
-        Optional<User> currentUser = userRepository.findById(userid);
+        if (currentUser.isEmpty()) return null;
 
-        if(currentUser.get() == null)return null;
+        Contact contactToSave = Contact.builder()
+                .name(newContact.getName())
+                .email(newContact.getEmail())
+                .phone(newContact.getPhone())
+                .address(newContact.getAddress())
+                .company(newContact.getCompany())
+                .contactType(newContact.getContactType())
+                .userId(newContact.getUserId())
+                .favorite(false)
+                .build();
 
-        Contact newContactPending = Contact.builder()
-        .name(newContact.getName())
-        .email(newContact.getEmail())
-        .phone(newContact.getPhone())
-        .address(newContact.getAddress())
-        .company(newContact.getCompany())
-        .contactType(newContact.getContactType())
-        .user(currentUser.get())
-        .favorite(false)
-        .build();
-
-        Contact newContactCreated = contactRepository.save(newContactPending);
-
-        currentUser.get().getContacts().add(newContactCreated);
-
-        return ContactDTO.builder()
-        .id(newContactCreated.getId())
-        .name(newContactCreated.getName())
-        .email(newContactCreated.getEmail())
-        .phone(newContactCreated.getPhone())
-        .address(newContactCreated.getAddress())
-        .company(newContactCreated.getCompany())
-        .contactType(newContactCreated.getContactType())
-        .userId(newContactCreated.getUser().getUserId())
-        .favorite(newContactCreated.getFavorite())
-        .build();
+        Contact saved = contactRepository.save(contactToSave);
+        return convertToDTO(saved);
     }
 
     public List<ContactDTO> getAllContacts(Long userId) {
         List<Contact> contacts = contactRepository.findByUserId(userId);
-
-        if(contacts.size() <= 0)return new ArrayList<ContactDTO>();
-
-        return StreamSupport.stream(contacts.spliterator(), false)
-                                   .map(contact -> new ContactDTO(contact.getId(), contact.getName(), contact.getEmail(), contact.getPhone(), contact.getAddress(), contact.getCompany(), contact.getContactType(),contact.getFavorite(),  contact.getUser().getUserId()))
-                                   .collect(Collectors.toList());
+        return contacts.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
-    public ContactDTO updateUser(Long contactId, ContactDTO contactDTO) { // will return empty object if id not found
-        
+    public ContactDTO updateUser(Long contactId, ContactDTO contactDTO) {
         Optional<Contact> contact = contactRepository.findById(contactId);
 
-        if(contact.isPresent()){
-            if (contactDTO.getName() != null) {
-                contact.get().setName(contactDTO.getName());
-            }
-            if (contactDTO.getEmail() != null) {
-                contact.get().setEmail(contactDTO.getEmail());
-            }
-            if (contactDTO.getPhone() != null) {
-                contact.get().setPhone(contactDTO.getPhone());
-            }
-            if (contactDTO.getAddress() != null) {
-                contact.get().setAddress(contactDTO.getAddress());
-            }
-            if (contactDTO.getCompany() != null) {
-                contact.get().setCompany(contactDTO.getCompany());
-            }
-            if (contactDTO.getContactType() != null) {
-                contact.get().setContactType(contactDTO.getContactType());
-            }
-            if (contactDTO.getFavorite() != null) {
-                contact.get().setFavorite(contactDTO.getFavorite());
-            }
-           
-            Contact updatedContact = contactRepository.save(contact.get());    
-            
-            return ContactDTO.builder()
-            .id(updatedContact.getId())
-            .name(updatedContact.getName())
-            .email(updatedContact.getEmail())
-            .phone(updatedContact.getPhone())
-            .address(updatedContact.getAddress())
-            .company(updatedContact.getCompany())
-            .contactType(updatedContact.getContactType())
-            .favorite(updatedContact.getFavorite())
-            .userId(updatedContact.getUser().getUserId())
-            .build();
+        if (contact.isPresent()) {
+            Contact existing = contact.get();
+
+            if (contactDTO.getName() != null) existing.setName(contactDTO.getName());
+            if (contactDTO.getEmail() != null) existing.setEmail(contactDTO.getEmail());
+            if (contactDTO.getPhone() != null) existing.setPhone(contactDTO.getPhone());
+            if (contactDTO.getAddress() != null) existing.setAddress(contactDTO.getAddress());
+            if (contactDTO.getCompany() != null) existing.setCompany(contactDTO.getCompany());
+            if (contactDTO.getContactType() != null) existing.setContactType(contactDTO.getContactType());
+            if (contactDTO.getFavorite() != null) existing.setFavorite(contactDTO.getFavorite());
+
+            Contact updated = contactRepository.save(existing);
+            return convertToDTO(updated);
         }
+
         return new ContactDTO();
     }
 
-    public Boolean deleteUser(Long contactId){
-        if(contactRepository.existsById(contactId)){
+    public Boolean deleteUser(Long contactId) {
+        if (contactRepository.existsById(contactId)) {
             contactRepository.deleteById(contactId);
             return true;
         }
@@ -128,20 +83,19 @@ public class ContactService {
     }
 
     public List<ContactDTO> getFilterContacts(Long userId, String query) {
+        Pattern pattern = Pattern.compile(query, Pattern.CASE_INSENSITIVE);
+        List<Contact> contacts = contactRepository.findByUserId(userId);
 
-            Pattern pattern = Pattern.compile(query);
+        return contacts.stream()
+                .filter(contact -> pattern.matcher(contact.getName()).find()
+                        || pattern.matcher(contact.getEmail()).find()
+                        || pattern.matcher(contact.getPhone()).find())
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
 
-            List<Contact> filteredContacts = contactRepository.findByUserId(userId);
-            
-            return filteredContacts.stream()
-            .filter(contact -> {
-                Matcher matcherName = pattern.matcher(contact.getName());
-                Matcher matcherEmail = pattern.matcher(contact.getEmail());
-                Matcher matcherPhone = pattern.matcher(contact.getPhone());
-                return matcherName.find() || matcherEmail.find() || matcherPhone.find();
-            })
-            .map(contact -> 
-                ContactDTO.builder() 
+    private ContactDTO convertToDTO(Contact contact) {
+        return ContactDTO.builder()
                 .id(contact.getId())
                 .name(contact.getName())
                 .email(contact.getEmail())
@@ -149,11 +103,8 @@ public class ContactService {
                 .address(contact.getAddress())
                 .company(contact.getCompany())
                 .contactType(contact.getContactType())
-                .userId(contact.getUser().getUserId())
+                .userId(contact.getUserId())
                 .favorite(contact.getFavorite())
-                .build()
-            )
-            .collect(Collectors.toList());   
-        }
-
+                .build();
+    }
 }

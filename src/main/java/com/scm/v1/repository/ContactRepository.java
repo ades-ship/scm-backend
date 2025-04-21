@@ -6,12 +6,12 @@ import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
 
-public interface ContactRepository extends MongoRepository<Contact, Long> {
+public interface ContactRepository extends MongoRepository<Contact, String> {
 
     // Find all contacts by userId
-    List<Contact> findByUserId(Long userId);
+    List<Contact> findByUserId(String userId);
 
     // Custom filter query by userId and query matching name, email or phone
     @Query("{ 'userId': ?0, $or: [ { 'name': ?1 }, { 'email': ?1 }, { 'phone': ?1 } ] }")
-    List<Contact> getFilterContacts(Long userId, String query);
+    List<Contact> getFilterContacts(String userId, String query);
 }

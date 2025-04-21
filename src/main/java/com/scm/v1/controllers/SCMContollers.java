@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.scm.v1.dto.ContactDTO;
 import com.scm.v1.dto.UserDTO;
+import com.scm.v1.entities.Contact;
 import com.scm.v1.services.ContactService;
 import com.scm.v1.services.UserService;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,8 +35,10 @@ public class SCMContollers {
     public List<UserDTO> getUsers() {
         return userService.getUsers();
     }
+
+    // view user profile
     @GetMapping("/user/{userId}")
-    public UserDTO getUser(@PathVariable Long userId) {
+    public UserDTO getUser(@PathVariable String userId) {
         return userService.getUser(userId);
     }
     @PostMapping("/authenticate/user")
@@ -46,37 +49,55 @@ public class SCMContollers {
     public UserDTO registerNewUser(@RequestBody UserDTO user) {
         return userService.registerUser(user);
     }
+
     @PutMapping("/update/user/{userId}")
-    public UserDTO updateUser(@PathVariable Long userId, @RequestBody UserDTO user) {
+    public UserDTO updateUser(@PathVariable String userId, @RequestBody UserDTO user) {
         return userService.updateUser(userId, user);
     }
     @DeleteMapping("/delete/user/{userId}")
-    public Boolean deleteUser(@PathVariable Long userId) {
+    public Boolean deleteUser(@PathVariable String userId) {
         return userService.deleteUser(userId);
     }
+
+    // to be doing in future
+    // @DeleteMapping("/delete/allusers")
+    // public String deleteAllUsers(){
+    // }
     
-    // CONTACT APIs
-    // Add contact to a user
+// Contact APIs
+
     @PostMapping("/contact/register/{userid}")
-    public ContactDTO registerNewContact(@PathVariable Long userid, @RequestBody ContactDTO contact) {
+    public Contact registerNewContact(@PathVariable String userid, @RequestBody Contact contact) {
         return contactService.registerContact(userid, contact);
     }
+
+    // get all contacts
+@GetMapping("/allcontacts")
+public List<ContactDTO> allContacts(){
+    return contactService.getAllContacts();
+}
+
+// get contact by contact id;
+@GetMapping("/contact/detail/{contactId}")
+public ContactDTO getContact(@PathVariable String contactId){
+    return contactService.getContactDetail(contactId);
+}
     //Get all contact for a specific user
     @GetMapping("/contact/users/{userId}")
-    public List<ContactDTO> getContacts(@PathVariable Long userId) {
+    public List<ContactDTO> getContacts(@PathVariable String userId) {
         return contactService.getAllContacts(userId);
     }
     //Get all contact for a specific user based on name, email id and phone number
     @GetMapping("/contact/{userId}")
-    public List<ContactDTO> getFilterContacts(@PathVariable Long userId, @RequestParam String query) {
+    public List<ContactDTO> getFilterContacts(@PathVariable String userId, @RequestParam String query) {
         return contactService.getFilterContacts(userId, query);
     }
     @PutMapping("/contact/update/{contactId}")
-    public ContactDTO updateContact(@PathVariable Long contactId, @RequestBody ContactDTO contact) {
+    public ContactDTO updateContact(@PathVariable String contactId, @RequestBody ContactDTO contact) {
         return contactService.updateUser(contactId, contact);
     }
     @DeleteMapping("/contact/delete/{contactId}")
-    public Boolean deleteContact(@PathVariable Long contactId) {
+    public Boolean deleteContact(@PathVariable String contactId) {
         return contactService.deleteUser(contactId);
     }
     

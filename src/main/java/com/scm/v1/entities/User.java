@@ -16,7 +16,7 @@ import lombok.*;
 public class User {
 
     @Id
-    private Long userId;
+    private String userId;
 
     private String username;
 
@@ -25,6 +25,9 @@ public class User {
     private String password;
 
     private String about;
+    private String phoneNumber;
+
+    private String address;
 
     private String profilePic;
 

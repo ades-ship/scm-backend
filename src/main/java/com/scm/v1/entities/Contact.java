@@ -14,7 +14,7 @@ import lombok.*;
 public class Contact {
 
     @Id
-    private Long id; // Mongo uses String (ObjectId)
+    private String id; // Mongo uses String (ObjectId)
 
     private String name;
 
@@ -30,6 +30,6 @@ public class Contact {
 
     private ContactType contactType = ContactType.PERSONAL;
 
-    @DBRef
-    private Long userId;
+    // @DBRef
+    private String userId;
 }

@@ -16,7 +16,7 @@ import lombok.Setter;
 @Builder
 public class ContactDTO {
     
-        private Long id;
+        private String id;
 
         private String name;
     
@@ -32,7 +32,7 @@ public class ContactDTO {
 
         private Boolean favorite;
 
-        private Long userId;
+        private String userId;
         
  
 }

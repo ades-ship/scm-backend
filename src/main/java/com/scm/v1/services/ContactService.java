@@ -1,6 +1,7 @@
 package com.scm.v1.services;
 
 import com.scm.v1.dto.ContactDTO;
+import com.scm.v1.dto.UserDTO;
 import com.scm.v1.entities.Contact;
 import com.scm.v1.entities.User;
 import com.scm.v1.repository.ContactRepository;
@@ -14,6 +15,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 @CrossOrigin(origins = "http://localhost:3000")
@@ -28,44 +30,49 @@ public class ContactService {
         this.contactRepository = contactRepository;
     }
 
-    public ContactDTO registerContact(Long userId, ContactDTO newContact) {
+    public Contact registerContact(String userId, Contact contact) {
+        contact.setUserId(userId);
+      Contact savedContact = contactRepository.save(contact);
+
         Optional<User> currentUser = userRepository.findById(userId);
+         
 
-        if (currentUser.isEmpty()) return null;
-
-        Contact contactToSave = Contact.builder()
-                .name(newContact.getName())
-                .email(newContact.getEmail())
-                .phone(newContact.getPhone())
-                .address(newContact.getAddress())
-                .company(newContact.getCompany())
-                .contactType(newContact.getContactType())
-                .userId(newContact.getUserId())
-                .favorite(false)
-                .build();
-
-        Contact saved = contactRepository.save(contactToSave);
-        return convertToDTO(saved);
+        if (currentUser.isPresent()){
+           User user=currentUser.get();
+           user.getContacts().add(savedContact);
+           userRepository.save(user);
+        }
+            
+      return savedContact;
+        
     }
 
-    public List<ContactDTO> getAllContacts(Long userId) {
+    public List<ContactDTO> getAllContacts(String userId) {
         List<Contact> contacts = contactRepository.findByUserId(userId);
+        System.out.println("all contact of this user--------" + contacts.size());
         return contacts.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
-    public ContactDTO updateUser(Long contactId, ContactDTO contactDTO) {
+    public ContactDTO updateUser(String contactId, ContactDTO contactDTO) {
         Optional<Contact> contact = contactRepository.findById(contactId);
 
         if (contact.isPresent()) {
             Contact existing = contact.get();
 
-            if (contactDTO.getName() != null) existing.setName(contactDTO.getName());
-            if (contactDTO.getEmail() != null) existing.setEmail(contactDTO.getEmail());
-            if (contactDTO.getPhone() != null) existing.setPhone(contactDTO.getPhone());
-            if (contactDTO.getAddress() != null) existing.setAddress(contactDTO.getAddress());
-            if (contactDTO.getCompany() != null) existing.setCompany(contactDTO.getCompany());
-            if (contactDTO.getContactType() != null) existing.setContactType(contactDTO.getContactType());
-            if (contactDTO.getFavorite() != null) existing.setFavorite(contactDTO.getFavorite());
+            if (contactDTO.getName() != null)
+                existing.setName(contactDTO.getName());
+            if (contactDTO.getEmail() != null)
+                existing.setEmail(contactDTO.getEmail());
+            if (contactDTO.getPhone() != null)
+                existing.setPhone(contactDTO.getPhone());
+            if (contactDTO.getAddress() != null)
+                existing.setAddress(contactDTO.getAddress());
+            if (contactDTO.getCompany() != null)
+                existing.setCompany(contactDTO.getCompany());
+            if (contactDTO.getContactType() != null)
+                existing.setContactType(contactDTO.getContactType());
+            if (contactDTO.getFavorite() != null)
+                existing.setFavorite(contactDTO.getFavorite());
 
             Contact updated = contactRepository.save(existing);
             return convertToDTO(updated);
@@ -74,7 +81,7 @@ public class ContactService {
         return new ContactDTO();
     }
 
-    public Boolean deleteUser(Long contactId) {
+    public Boolean deleteUser(String contactId) {
         if (contactRepository.existsById(contactId)) {
             contactRepository.deleteById(contactId);
             return true;
@@ -82,7 +89,7 @@ public class ContactService {
         return false;
     }
 
-    public List<ContactDTO> getFilterContacts(Long userId, String query) {
+    public List<ContactDTO> getFilterContacts(String userId, String query) {
         Pattern pattern = Pattern.compile(query, Pattern.CASE_INSENSITIVE);
         List<Contact> contacts = contactRepository.findByUserId(userId);
 
@@ -106,5 +113,38 @@ public class ContactService {
                 .userId(contact.getUserId())
                 .favorite(contact.getFavorite())
                 .build();
+    }
+
+    public List<ContactDTO> getAllContacts() {
+        List<Contact> contacts = contactRepository.findAll();
+        if (contacts.isEmpty()) {
+            throw new UnsupportedOperationException("No contacts are added yet'");
+        }
+        List<ContactDTO> contactdto = StreamSupport.stream(contacts.spliterator(), false)
+                .map(contact -> new ContactDTO(contact.getId(), contact.getName(), contact.getEmail(),
+                        contact.getPhone(), contact.getAddress(),
+                        contact.getCompany(), contact.getContactType(), contact.getFavorite(), null))
+                .collect(Collectors.toList());
+
+        return contactdto;
+
+    }
+
+    public ContactDTO getContactDetail(String contactId) {
+        Optional<Contact> contact = contactRepository.findById(contactId);
+        if (contact.isEmpty()) {
+            throw new UnsupportedOperationException("no contact found'");
+        }
+        return ContactDTO.builder()
+                .id(contact.get().getId())
+                .name(contact.get().getName())
+                .email(contact.get().getEmail())
+                .phone(contact.get().getPhone())
+                .address(contact.get().getAddress())
+                .company(contact.get().getCompany())
+                .contactType(contact.get().getContactType())
+                .favorite(contact.get().getFavorite())
+                .build();
+
     }
 }

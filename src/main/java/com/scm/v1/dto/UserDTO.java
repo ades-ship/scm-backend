@@ -21,11 +21,13 @@ import lombok.Setter;
 @Component
 public class UserDTO {
    
-    private Long userId;
+    private String userId;
     private String username;
     private String email;
     private String password;
     private String about;
+    private String phoneNumber;
+    private String address;
     private String profilePic;
     private Boolean enabled = false;
     private Boolean emailVerified = false;

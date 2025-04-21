@@ -9,9 +9,8 @@ import org.springframework.stereotype.Repository;
 import com.scm.v1.entities.User;
 
 @Repository
-public interface UserRepository extends MongoRepository<User, Long> {
+public interface UserRepository extends MongoRepository<User, String> {
     
-    Optional<User> findByUserId(Long userId); // Assuming userId is a field, not the MongoDB _id
     
     @Query("{ $and: [ { $or: [ { 'username': ?0 }, { 'email': ?0 } ] }, { 'password': ?1 } ] }")
     Optional<User> authenticateUser(String id, String password);

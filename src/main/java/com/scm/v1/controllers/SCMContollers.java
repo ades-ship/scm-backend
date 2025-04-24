@@ -2,6 +2,7 @@ package com.scm.v1.controllers;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -99,6 +100,12 @@ public ContactDTO getContact(@PathVariable String contactId){
     @DeleteMapping("/contact/delete/{contactId}")
     public Boolean deleteContact(@PathVariable String contactId) {
         return contactService.deleteUser(contactId);
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<String> deleteAllContacts(@PathVariable String userId) {
+        contactService.deleteAllContactsByUserId(userId);
+        return ResponseEntity.ok("All contacts for user " + userId + " have been deleted.");
     }
     
 }

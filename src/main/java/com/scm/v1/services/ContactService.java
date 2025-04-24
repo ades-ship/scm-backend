@@ -4,6 +4,7 @@ import com.scm.v1.dto.ContactDTO;
 import com.scm.v1.dto.UserDTO;
 import com.scm.v1.entities.Contact;
 import com.scm.v1.entities.User;
+import com.scm.v1.exception.ScmException;
 import com.scm.v1.repository.ContactRepository;
 import com.scm.v1.repository.UserRepository;
 
@@ -49,6 +50,7 @@ public class ContactService {
 
     public List<ContactDTO> getAllContacts(String userId) {
         List<Contact> contacts = contactRepository.findByUserId(userId);
+        
         System.out.println("all contact of this user--------" + contacts.size());
         return contacts.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
@@ -87,6 +89,17 @@ public class ContactService {
             return true;
         }
         return false;
+    }
+
+    public void deleteAllContactsByUserId(String userId) {
+        List<Contact> contacts = contactRepository.findByUserId(userId);
+        if (contacts.isEmpty()) {
+            System.out.println("No contacts found for user: " + userId);
+            
+        }
+    
+        contactRepository.deleteAll(contacts);
+        System.out.println("Deleted all contacts for user: " + userId);
     }
 
     public List<ContactDTO> getFilterContacts(String userId, String query) {

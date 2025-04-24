@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
+import com.scm.v1.dto.ContactDTO;
 import com.scm.v1.dto.UserDTO;
 import com.scm.v1.entities.Providers;
 import com.scm.v1.entities.User;
@@ -22,9 +23,17 @@ import ch.qos.logback.core.spi.ScanException;
 @Service
 @CrossOrigin(origins = "http://localhost:3000")
 public class UserService  {
+
+    @Autowired
+    private final ContactService contactService;
     
     @Autowired 
     UserRepository userRepository;
+
+
+    UserService(ContactService contactService) {
+        this.contactService = contactService;
+    }
     
 
     //  @Override
@@ -106,9 +115,21 @@ System.out.println("register user ---------"+newUserCreated);
 
     public Boolean deleteUser(String userId) {
         if(userRepository.existsById(userId)){
+          List<ContactDTO> contacts = contactService.getAllContacts(userId);
+          if(contacts.size()==0){
             userRepository.deleteById(userId);
             return true;
-        }
+          } else {
+            System.out.println("all contacts of this id"+contacts.size());
+
+            // wirite logic here 
+            contactService.deleteAllContactsByUserId(userId);
+                userRepository.deleteById(userId);
+                return true;
+          }
+          
+        }  
+        
         return false;
     }
 

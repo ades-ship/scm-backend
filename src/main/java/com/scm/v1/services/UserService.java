@@ -7,6 +7,10 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
@@ -18,35 +22,41 @@ import com.scm.v1.exception.ScmException;
 import com.scm.v1.repository.UserRepository;
 
 import ch.qos.logback.core.spi.ScanException;
+import lombok.Builder;
 
 
 @Service
+@Builder
 @CrossOrigin(origins = "http://localhost:3000")
-public class UserService  {
+public class UserService implements UserDetailsService {
 
     @Autowired
     private final ContactService contactService;
     
     @Autowired 
-    UserRepository userRepository;
+    private final UserRepository userRepository;
 
+  private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    UserService(ContactService contactService) {
+    UserService(ContactService contactService, UserRepository userRepository) {
         this.contactService = contactService;
+        this.userRepository=userRepository;
     }
     
 
-    //  @Override
-    // public UserDetails loadUserByUsername(String username) {
-    //     User user = userRepository.findByUsername(username);
-    //     if (user == null) return null;
+     @Override
+    public UserDetails loadUserByUsername(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            
+        }
 
-    //     return new org.springframework.security.core.userdetails.User(
-    //         user.getUsername(),
-    //         user.getPassword(),
-    //         List.of(new SimpleGrantedAuthority("ROLE_" + user.getRoles()))
-    //     );
-    // }
+        return new org.springframework.security.core.userdetails.User(
+            user.getUsername(),
+            user.getPassword(),
+            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRoles()))
+        );
+    }
 
 
     public List<UserDTO> getUsers(){
@@ -82,11 +92,13 @@ public class UserService  {
     }
 
     public UserDTO registerUser(UserDTO user) {
+    
 
         User newUserPending = User.builder()
         .username(user.getUsername())
         .email(user.getEmail())
-        .password(user.getPassword())
+        .password(passwordEncoder.encode(user.getPassword()))
+        // .password(user.getPassword())
         .phoneNumber("")
         .about("")
         .address(user.getAddress())

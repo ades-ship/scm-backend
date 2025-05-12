@@ -1,9 +1,14 @@
 package com.scm.v1.entities;
-
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import lombok.*;
 
@@ -13,7 +18,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class User implements UserDetails {
 
     @Id
     private String userId;
@@ -43,4 +48,42 @@ public class User {
 
     @DBRef
     private List<Contact> contacts = new ArrayList<>();
+
+    @DBRef
+    private List<String> roleList = new ArrayList<>();
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // list of roles[USER,ADMIN]
+        // Collection of SimpGrantedAuthority[roles{ADMIN,USER}]
+        Collection<SimpleGrantedAuthority> roles = List.of(this.roles).stream()
+                .map(role -> new SimpleGrantedAuthority(role.name()))
+                .collect(Collectors.toList());
+        return roles;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+    @Override
+    public boolean isEnabled() {
+        return this.enabled;
+    }
+
+    @Override
+    public String getPassword(){
+        return this.password;
+    }
+   
 }
